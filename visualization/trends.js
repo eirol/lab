@@ -8,6 +8,9 @@
 // * importing database from elsewhere?
 //
 
+const DAYS_PER_YEAR = 365;
+const DAYS_PER_MONTH = 30;
+
 let regression = methods;
 
 let params = {
@@ -40,6 +43,9 @@ let params = {
   splitLargeScaleEra: true,
 
   plotRegressions: false,
+
+  bootstrapSampleSize: 1000,
+  adjustForEstimateUncertainty: true,
 };
 
 function preprocessDatabase(database) {
@@ -182,9 +188,9 @@ function generateGraph(database, params) {
 
   addEraInfo(rows, eras, params);
 
-  let regressionData = regressData(rows, eras, params);
+  let regressionResults = regressData(rows, eras, params);
 
-  return {articles: rows, eras: eras, regressionData: regressionData};
+  return {articles: rows, eras: eras, regressionData: regressionResults.lines, regressionInfoTable: regressionResults.infoTable};
 }
 
 // TODO Regress on each domain
@@ -349,12 +355,17 @@ function addEraInfo(rows, eras, params) {
   }
 }
 
-function extractEraDomains(rows) {
+function extractEraDomains(eras, rows) {
   let added = new Set();
   let eraDomains = [];
   let currentGroup = [];
 
   let eraDomainToGroup = {};
+
+  let nameToEra = {};
+  for (let era of eras) {
+    nameToEra[era.Era] = era;
+  }
 
   for (let row of rows) {
     if (row.deleted) continue;
@@ -371,12 +382,17 @@ function extractEraDomains(rows) {
   }
 
   eraDomains.sort((a, b) => {
-    if (a[0] < b[0]) return -1;
-    if (a[0] > b[0]) return +1;
+    let eraA = nameToEra[a[0]];
+    let eraB = nameToEra[b[0]];
+    let domainA = a[1];
+    let domainB = b[1];
 
-    // a[0] == b[0]
-    if (a[1] < b[1]) return -1;
-    if (a[1] > b[1]) return +1;
+    if (eraA.start < eraB.start) return -1;
+    if (eraA.start > eraB.start) return +1;
+
+    // eraA.start == eraB.start
+    if (domainA < domainB) return -1;
+    if (domainA > domainB) return +1;
 
     // a == b
     return 0;
@@ -386,9 +402,12 @@ function extractEraDomains(rows) {
 }
 
 function regressData(rows, eras, params) {
-  let regressionData = [];
+  let lines = [];
+  let infoTable = [];
 
-  for (let [era, domain, group] of extractEraDomains(rows)) {
+  for (let [era, domain, group] of extractEraDomains(eras, rows)) {
+    if (group.length < 3) continue;
+
     let data = [];
 
     let minEra;
@@ -396,20 +415,87 @@ function regressData(rows, eras, params) {
     let minX = Infinity;
     let maxX = -Infinity;
 
+    let x = [];
+    let y = [];
+
     for (let row of group) {
-      let x = (params.xAxis == "Publication date") ? dateToJulianDate(row["Publication date"]) : Math.log10(row[params.xAxis]);
-      let y = Math.log10(row[params.yAxis]);
+      let xv = (params.xAxis == "Publication date") ? dateToJulianDate(row["Publication date"]) : Math.log10(row[params.xAxis]);
+      let yv = Math.log10(row[params.yAxis]);
 
-      if (x < minX) {minX = x; minEra = row._Era};
-      if (x > maxX) {maxX = x; maxEra = row._Era};
+      if (xv < minX) {minX = xv; minEra = row._Era};
+      if (xv > maxX) {maxX = xv; maxEra = row._Era};
 
-      data.push([x, y]);
+      x.push(xv);
+      y.push(yv);
+      data.push([xv, yv]);
     }
 
-    if (data.length < 2) continue;
+    // Collect information about the fit
+    let info = {};
+    info.era = era;
+    info.domain = domain;
+    info.n = data.length;
 
     let model = regression.linear(data, { order: 2, precision: null });
     let bestSlope = model.coeffs[0];
+
+    let quantiles = {
+      low:    0.025,
+      median: 0.500,
+      high:   0.975,
+    };
+    let bootstrappingResults = bootstrapping(x, y, params.bootstrapSampleSize, params.adjustForEstimateUncertainty, quantiles);
+    /*
+    let bootstrappingResults = {
+      slopes: [
+        1, 2, 3,
+      ],
+
+      quantiles: {
+        low: 1,
+        median: 2,
+        high: 3,
+      },
+    };
+    */
+
+    let slopeSummary;
+    let lowSlope = bootstrappingResults.quantiles.low;
+    let medianSlope = bootstrappingResults.quantiles.median;
+    let highSlope = bootstrappingResults.quantiles.high;
+
+    if (params.xAxis == 'Publication date') {
+      bestSlope *= DAYS_PER_YEAR;
+      lowSlope *= DAYS_PER_YEAR;
+      medianSlope *= DAYS_PER_YEAR;
+      highSlope *= DAYS_PER_YEAR;
+      info.Slope = `${bestSlope.toFixed(1)} OOMs/year [${lowSlope.toFixed(1)} ; ${medianSlope.toFixed(1)} ; ${highSlope.toFixed(1)}]`
+    } else {
+      info.Slope = `${bestSlope.toExponential(1)} [${lowSlope.toExponential(1)} ; ${medianSlope.toExponential(1)} ; ${highSlope.toExponential(1)}]`
+    }
+
+    // Doubling time
+    if (params.xAxis == 'Publication date') {
+      let doublingTimes = [];
+      for (let slope of bootstrappingResults.slopes) {
+        // TODO Zero slopes
+        doublingTimes.push(Math.log10(2) / slope / DAYS_PER_MONTH);
+      }
+
+      let bestDoublingTime   = Math.log10(2) / model.coeffs[0] / DAYS_PER_MONTH;
+      let lowDoublingTime    = quantile(doublingTimes, quantiles.low);
+      let medianDoublingTime = quantile(doublingTimes, quantiles.median);
+      let highDoublingTime   = quantile(doublingTimes, quantiles.high);
+
+      info["Doubling time"] = `${bestDoublingTime.toFixed(1)} months [${lowDoublingTime.toFixed(1)} ; ${medianDoublingTime.toFixed(1)} ; ${highDoublingTime.toFixed(1)}]`;
+    }
+
+    info._slopes = bootstrappingResults.slopes;
+
+    info.R2 = model.r2.toFixed(2);
+    info._group = group; // For testing purposes
+
+    // Extract predictions
 
     let xPred; 
     if (params.xAxis == 'Publication date') {
@@ -434,8 +520,12 @@ function regressData(rows, eras, params) {
     yPred[0] = 10.0**yPred[0];
     yPred[1] = 10.0**yPred[1];
 
+    info['Scale (start / end)'] = `${yPred[0].toExponential(0)} / ${yPred[1].toExponential(0)}`;
+
+    infoTable.push(info);
+
     for (let i = 0; i < 2; i++) {
-      regressionData.push({
+      lines.push({
         [params.xAxis]: xPred[i],
         [params.yAxis]: yPred[i],
         Domain: domain,
@@ -444,14 +534,129 @@ function regressData(rows, eras, params) {
     }
   }
 
-  regressionData.sort((a, b) => a[params.xAxis] - b[params.xAxis]);
+  //console.log(infoTable);
+  lines.sort((a, b) => a[params.xAxis] - b[params.xAxis]);
 
-  return regressionData;
+  return {lines: lines, infoTable: infoTable};
+}
+
+function bootstrapping(x, y, sampleSize, adjustForEstimateUncertainty, quantiles) {
+  quantiles ||= {
+    low:    0.025,
+    median: 0.500,
+    high:   0.975,
+  };
+
+  let slopes = [];
+  let n = x.length;
+
+  // Bit of common processing
+  let x2 = [];
+  let xy = [];
+  for (let i = 0; i < x.length; i++) {
+    x2.push(x[i]**2);
+    xy.push(x[i]*y[i]);
+  }
+
+  let sampleIndices = Array(n);
+
+  for (let sampleIndex = 0; sampleIndex < sampleSize; sampleIndex++) {
+    randomInts(n, n, sampleIndices);
+
+    // We need at least 3 distinct points to do a linear regression
+
+    let uniqueIndices = [];
+    for (let i of sampleIndices) {
+      if (!uniqueIndices.includes(i)) uniqueIndices.push(i);
+      if (uniqueIndices.length >= 3) break;
+    }
+
+    if (uniqueIndices.length < 3) continue;
+
+    /*
+    let sumXS = 0;
+    let sumYS = 0;
+    let sumX2S = 0;
+    let sumXYS = 0;
+    for (let i of sampleIndices) {
+      sumXS += x[i];
+      sumYS += y[i];
+      sumX2S += x2[i];
+      sumXYS += xy[i];
+
+      // TODO Understand this: Can we do this at the preprocessing or postprocessing?
+      if (adjustForEstimateUncertainty) {
+        let yNoise = randomFloat(Math.log10(1/2), Math.log10(2));
+        sumYS += yNoise;
+        sumXYS += x[i] * yNoise;
+      }
+    }
+
+    let slope = (n*sumXYS - sumXS*sumYS)/(n*sumX2S - sumXS**2);
+    slopes.push(slope);
+    */
+
+    let data = [];
+    for (let i of sampleIndices) {
+      let noise = adjustForEstimateUncertainty ? randomFloat(Math.log10(1/2), Math.log10(2)) : 0;
+      data.push([x[i], y[i] + noise]);
+    }
+
+    let model = regression.linear(data, { order: 2, precision: null });
+    let slope = model.coeffs[0];
+    slopes.push(slope);
+  }
+
+  let quantileValues = {};
+
+  sortNumberArray(slopes);
+  for (let key in quantiles) {
+    quantileValues[key] = quantile(slopes, quantiles[key], true);
+  }
+
+  return {slopes: slopes, quantiles: quantileValues};
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-// Utility library
+// Utilities
 //////////////////////////////////////////////////////////////////////////////
+
+function quantile(arr, q, sorted) {
+  if (!sorted) {
+    arr = arr.slice(); // clone the array
+    sortNumberArray(arr);
+  }
+
+  let i = q * (arr.length - 1);
+  let integerPart = Math.floor(i);
+  let fractionalPart = i - integerPart;
+
+  let left = arr[integerPart];
+  let right = arr[Math.min(integerPart+1, arr.length-1)];
+
+  return (1 - fractionalPart) * left + fractionalPart * right;
+}
+
+function sortNumberArray(arr) {
+  return arr.sort((a, b) => a - b);
+}
+
+function randomFloat(min, max) {
+  return min + Math.random() * (max - min);
+}
+
+// TODO Make this fast
+function randomInts(upperLimit, count, samples) {
+  if (samples === undefined) {
+    samples = new Array(count);
+  }
+
+  for (let i = 0; i < count; i++) {
+    samples[i] = Math.floor(Math.random() * upperLimit);
+  }
+
+  return samples;
+}
 
 // TODO Fix this
 function parseDate(str) {
@@ -484,10 +689,12 @@ function deepCopy(obj) {
   return JSON.parse(JSON.stringify(obj));
 }
 
+// TODO Check this!
 function dateToJulianDate(date) {
-  var x = Math.floor((14 - date.getMonth())/12);
+  let month = date.getMonth() + 1;
+  var x = Math.floor((14 - month)/12);
   var y = date.getFullYear() + 4800 - x;
-  var z = date.getMonth() - 3 + 12 * x;
+  var z = month - 3 + 12 * x;
 
   var n = date.getDate() + Math.floor(((153 * z) + 2)/5) + (365 * y) + Math.floor(y/4) + Math.floor(y/400) - Math.floor(y/100) - 32045;
 

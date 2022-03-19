@@ -8,6 +8,10 @@
 
 let p = console.log;
 
+function date(year, month, day) {
+  return new Date(year, month - 1, day);
+}
+
 function _(parent, selector) {
   return parent.querySelector(selector);
 }
@@ -157,6 +161,18 @@ function renderVega(id, data, eras, regressionData, xAxis, yAxis, plotRegression
             "name": "regression-lines"
         },
 
+        "mark": {
+            "clip": true,
+            "point": false,
+            "strokeDash": [
+                10,
+                5
+            ],
+            "interpolate": "linear",
+            "point": "transparent",
+            "type": "line",
+        },
+
         "transform": [
           {"filter": "datum.visible"},
           {"filter": {"and": ["datum.visible", {"not": "domainsDisabled[datum.Domain]"}]}},
@@ -176,24 +192,17 @@ function renderVega(id, data, eras, regressionData, xAxis, yAxis, plotRegression
                 },
                 "type": "nominal"
             },
+
             "x": {
               "field": "Publication date",
               "type": "temporal"
             },
+
             "y": {
                 "field": "Parameters",
                 "type": "quantitative"
-            }
+            },
         },
-        "mark": {
-            "clip": true,
-            "point": false,
-            "strokeDash": [
-                10,
-                5
-            ],
-            "type": "line"
-        }
       }
     ],
   };
@@ -333,7 +342,7 @@ function renderVega(id, data, eras, regressionData, xAxis, yAxis, plotRegression
       "mark": {"type": "text", "align": {expr: "datum._alignment"}, "baseline": "middle", "dx": {expr: '(datum._alignment == "left") ? 7 : -7'}},
 
       "transform": [
-        {"filter": {"and": [{"not": "datum.delete"}, "datum.visible", "labelSystems"]}}
+        {"filter": {"and": [{"not": "datum.delete"}, "datum.visible", {"not": "domainsDisabled[datum._Domain]"}, "labelSystems"]}}
       ],
 
       "encoding": {
@@ -346,13 +355,6 @@ function renderVega(id, data, eras, regressionData, xAxis, yAxis, plotRegression
           },
           "type": "nominal"
         },
-
-          /*
-        "opacity": {
-          //"condition": {"value": 1, "selection": "selector001"},
-          "value": 0.2
-        },
-        */
 
         "text": {"field": "System", "type": "nominal"},
         "x": {
@@ -477,6 +479,10 @@ function makeVisualizer(selector) {
     options: {},
 
     onChange: () => {},
+
+    openOptions: function() {
+      resizeOptions(250);
+    },
   };
 
   visualizer.update = (v, options, objectsUpdated) => {
@@ -502,7 +508,6 @@ function makeVisualizer(selector) {
 
       visualizer.onOptionSet[optionNames[i]] = (v => {
         visualizer.options[optionNames[i]] = v;
-        console.log(v);
       });
     }
 
@@ -519,10 +524,10 @@ function makeVisualizer(selector) {
         let startDlYear         = (1950 + values["eraTransition1"] * (2023 - 1950));
         let startLargeScaleYear = (1950 + values["eraTransition2"] * (2023 - 1950));
 
-        visualizer.options["startDate"] = new Date(startYear, 1, 1);
-        visualizer.options["endDate"] = new Date(endYear, 1, 1);
-        visualizer.options["startDlEra"] = new Date(startDlYear, 1, 1);
-        visualizer.options["startLargeScaleEra"] = new Date(startLargeScaleYear, 1, 1);
+        visualizer.options["startDate"] = date(startYear, 1, 1);
+        visualizer.options["endDate"] = date(endYear, 1, 1);
+        visualizer.options["startDlEra"] = date(startDlYear, 1, 1);
+        visualizer.options["startLargeScaleEra"] = date(startLargeScaleYear, 1, 1);
 
         if (true || eventType == "changed") {
           visualizer.update(visualizer, visualizer.options, ["startDlEra", "startLargeScaleEra"])
@@ -646,14 +651,14 @@ function makeVisualizer(selector) {
     visualizer.nodes.options.appendChild(optionNode);
   };
 
-  visualizer.addNumberOption = function(labelName, optionName, value) {
+  visualizer.addNumberOption = function(labelName, optionName, value, type) {
     value ||= 0;
     visualizer.options[optionName] = value;
 
     let inputId = optionName;
 
     let optionNode = html('<div class="option"><label class="optionLabel" for="' + inputId + '">' + labelName + '</label></div>');
-    let input = html('<input type="number" value="'+ value +'" class="optionValue" id="' + inputId+ '"></input>');
+    let input = html('<input type="number" value="'+ value +'" class="optionValue" id="' + inputId + (type == "natural" ? "step=1 min=0" : "") + '"></input>');
     optionNode.appendChild(input);
 
     visualizer.onOptionSet[optionName] = (v => {
@@ -689,11 +694,6 @@ function makeVisualizer(selector) {
     });
 
     visualizer.nodes.options.appendChild(optionNode);
-  };
-
-  visualizer.addText = function(text) {
-    let node = html('<div class="info">'+ text +'</div>');
-    visualizer.nodes.options.appendChild(node);
   };
 
   visualizer.setLegend = function(categories) {
@@ -771,23 +771,34 @@ function makeVisualizer(selector) {
 // Driver
 /////////////////////////////////////////////////////
 
+
 let v = makeVisualizer("#newGraph");
 
-presets = [{'name': 'fig1', 'params': {'xAxis': 'Publication date', 'yAxis': 'Training compute (FLOPs)', 'startDate': new Date(1950, 01, 01), 'endDate': new Date(2022, 02, 01), 'startDlEra': new Date(2009, 12, 31), 'startLargeScaleEra': new Date(2015, 09, 01), 'splitDlEra': true, 'splitLargeScaleEra': true, 'citationThreshold': 0, 'separateCategories': false, 'otherDomainThreshold': 10, 'outliersAction': 'remove', 'largeScaleAction': 'label', 'bigAlphagoAction': 'ignore', 'recordSettersAction': 'ignore', 'lowOutliersZValueThreshold': -2, 'highOutliersZValueThreshold': 0.76, 'outlierWindowSize': 2, 'labelPoints': false, 'plotRegressions': true, 'labelEras': true}}, {'name': 'fig2', 'params': {'xAxis': 'Publication date', 'yAxis': 'Training compute (FLOPs)', 'startDate': new Date(1950, 01, 01), 'endDate': new Date(2022, 02, 01), 'startDlEra': new Date(2009, 12, 31), 'startLargeScaleEra': new Date(2015, 09, 01), 'splitDlEra': true, 'splitLargeScaleEra': true, 'citationThreshold': 0, 'separateCategories': true, 'otherDomainThreshold': 10, 'outliersAction': 'remove', 'largeScaleAction': 'label', 'bigAlphagoAction': 'ignore', 'recordSettersAction': 'ignore', 'lowOutliersZValueThreshold': -2, 'highOutliersZValueThreshold': 0.76, 'outlierWindowSize': 2, 'labelPoints': false, 'plotRegressions': false, 'labelEras': true}}, {'name': 'fig3', 'params': {'xAxis': 'Publication date', 'yAxis': 'Training compute (FLOPs)', 'startDate': new Date(1950, 01, 01), 'endDate': new Date(2022, 02, 01), 'startDlEra': new Date(2009, 12, 31), 'startLargeScaleEra': new Date(2024, 09, 01), 'splitDlEra': true, 'splitLargeScaleEra': true, 'citationThreshold': 0, 'separateCategories': false, 'otherDomainThreshold': 10, 'outliersAction': 'remove', 'largeScaleAction': 'ignore', 'bigAlphagoAction': 'ignore', 'recordSettersAction': 'ignore', 'lowOutliersZValueThreshold': -2, 'highOutliersZValueThreshold': 0.76, 'outlierWindowSize': 2, 'labelPoints': false, 'plotRegressions': true, 'labelEras': true}}, {'name': 'fig4', 'params': {'xAxis': 'Publication date', 'yAxis': 'Training compute (FLOPs)', 'startDate': new Date(2009, 12, 31), 'endDate': new Date(2022, 02, 01), 'startDlEra': new Date(2009, 12, 31), 'startLargeScaleEra': new Date(2015, 09, 01), 'splitDlEra': true, 'splitLargeScaleEra': true, 'citationThreshold': 0, 'separateCategories': false, 'otherDomainThreshold': 10, 'outliersAction': 'remove', 'largeScaleAction': 'label', 'bigAlphagoAction': 'ignore', 'recordSettersAction': 'ignore', 'lowOutliersZValueThreshold': -2, 'highOutliersZValueThreshold': 0.76, 'outlierWindowSize': 2, 'labelPoints': true, 'plotRegressions': true, 'labelEras': true}}, {'name': 'fig5', 'params': {'xAxis': 'Publication date', 'yAxis': 'Training compute (FLOPs)', 'startDate': new Date(2015, 09, 01), 'endDate': new Date(2022, 02, 01), 'startDlEra': new Date(2009, 12, 31), 'startLargeScaleEra': new Date(2015, 09, 01), 'splitDlEra': true, 'splitLargeScaleEra': true, 'citationThreshold': 0, 'separateCategories': false, 'otherDomainThreshold': 10, 'outliersAction': 'remove', 'largeScaleAction': 'isolate', 'bigAlphagoAction': 'ignore', 'recordSettersAction': 'ignore', 'lowOutliersZValueThreshold': -2, 'highOutliersZValueThreshold': 0.76, 'outlierWindowSize': 2, 'labelPoints': true, 'plotRegressions': true, 'labelEras': false}}, {'name': 'fig6', 'params': {'xAxis': 'Publication date', 'yAxis': 'Training compute (FLOPs)', 'startDate': new Date(1990, 01, 01), 'endDate': new Date(2022, 02, 01), 'startDlEra': new Date(2009, 12, 31), 'startLargeScaleEra': new Date(2015, 09, 01), 'splitDlEra': true, 'splitLargeScaleEra': true, 'citationThreshold': 0, 'separateCategories': false, 'otherDomainThreshold': 10, 'outliersAction': 'label', 'largeScaleAction': 'label', 'bigAlphagoAction': 'ignore', 'recordSettersAction': 'ignore', 'lowOutliersZValueThreshold': -2, 'highOutliersZValueThreshold': 0.76, 'outlierWindowSize': 2, 'labelPoints': false, 'plotRegressions': false, 'labelEras': true}}, {'name': 'fig7', 'params': {'xAxis': 'Publication date', 'yAxis': 'Training compute (FLOPs)', 'startDate': new Date(1950, 01, 01), 'endDate': new Date(2022, 02, 01), 'startDlEra': new Date(2009, 12, 31), 'startLargeScaleEra': new Date(2015, 09, 01), 'splitDlEra': true, 'splitLargeScaleEra': true, 'citationThreshold': 0, 'separateCategories': false, 'otherDomainThreshold': 10, 'outliersAction': 'ignore', 'largeScaleAction': 'ignore', 'bigAlphagoAction': 'remove', 'recordSettersAction': 'isolate', 'lowOutliersZValueThreshold': -2, 'highOutliersZValueThreshold': 0.76, 'outlierWindowSize': 2, 'labelPoints': true, 'plotRegressions': true, 'labelEras': true}}, {'name': 'fig8', 'params': {'xAxis': 'Publication date', 'yAxis': 'Training compute (FLOPs)', 'startDate': new Date(2009, 12, 31), 'endDate': new Date(2022, 02, 01), 'startDlEra': new Date(2009, 12, 31), 'startLargeScaleEra': new Date(2015, 09, 01), 'splitDlEra': true, 'splitLargeScaleEra': false, 'citationThreshold': 0, 'separateCategories': true, 'otherDomainThreshold': 10, 'outliersAction': 'remove', 'largeScaleAction': 'ignore', 'bigAlphagoAction': 'ignore', 'recordSettersAction': 'ignore', 'lowOutliersZValueThreshold': -2, 'highOutliersZValueThreshold': 0.76, 'outlierWindowSize': 2, 'labelPoints': false, 'plotRegressions': true, 'labelEras': true}}, {'name': 'fig10', 'params': {'xAxis': 'Publication date', 'yAxis': 'Training compute (FLOPs)', 'startDate': new Date(2012, 09, 01), 'endDate': new Date(2017, 12, 01), 'startDlEra': new Date(2012, 09, 01), 'startLargeScaleEra': new Date(2015, 09, 01), 'splitDlEra': true, 'splitLargeScaleEra': false, 'citationThreshold': 0, 'separateCategories': false, 'otherDomainThreshold': 10, 'outliersAction': 'remove', 'largeScaleAction': 'label', 'bigAlphagoAction': 'ignore', 'recordSettersAction': 'ignore', 'lowOutliersZValueThreshold': -2, 'highOutliersZValueThreshold': 0.76, 'outlierWindowSize': 2, 'labelPoints': false, 'plotRegressions': true, 'labelEras': true}}];
+let ths = '<tr>';
+ths += '<th>Foo</th>';
+ths += '<th>Bar</th>';
+ths += '<th>Foobar</th>';
+ths += '</tr>';
+let tableNode = html('<div class="regressionTableWrapper"><table class="regressionTable hover nowrap">' + ths + '</table></div>');
+_(document, "#newGraph").appendChild(tableNode);
+
+presets = [
+  {'name': 'default', 'params': {'xAxis': 'Publication date', 'yAxis': 'Training compute (FLOPs)', 'startDate': date(1950, 1, 1), 'endDate': date(2022, 2, 1), 'startDlEra': date(2010, 1, 1), 'startLargeScaleEra': date(2015, 9, 1), 'splitDlEra': true, 'splitLargeScaleEra': true, 'citationThreshold': 0, 'separateCategories': true, 'otherDomainThreshold': 10, 'outliersAction': 'ignore', 'largeScaleAction': 'ignore', 'bigAlphagoAction': 'ignore', 'recordSettersAction': 'ignore', 'lowOutliersZValueThreshold': -2, 'highOutliersZValueThreshold': 0.54, 'outlierWindowSize': 2, 'labelPoints': true, 'plotRegressions': true, 'labelEras': true}},
+  {'name': 'fig1', 'params': {'xAxis': 'Publication date', 'yAxis': 'Training compute (FLOPs)', 'startDate': date(1950, 01, 01), 'endDate': date(2022, 02, 01), 'startDlEra': date(2009, 12, 31), 'startLargeScaleEra': date(2015, 09, 01), 'splitDlEra': true, 'splitLargeScaleEra': true, 'citationThreshold': 0, 'separateCategories': false, 'otherDomainThreshold': 10, 'outliersAction': 'remove', 'largeScaleAction': 'label', 'bigAlphagoAction': 'ignore', 'recordSettersAction': 'ignore', 'lowOutliersZValueThreshold': -2, 'highOutliersZValueThreshold': 0.76, 'outlierWindowSize': 2, 'labelPoints': false, 'plotRegressions': true, 'labelEras': true}}, {'name': 'fig2', 'params': {'xAxis': 'Publication date', 'yAxis': 'Training compute (FLOPs)', 'startDate': date(1950, 01, 01), 'endDate': date(2022, 02, 01), 'startDlEra': date(2009, 12, 31), 'startLargeScaleEra': date(2015, 09, 01), 'splitDlEra': true, 'splitLargeScaleEra': true, 'citationThreshold': 0, 'separateCategories': true, 'otherDomainThreshold': 10, 'outliersAction': 'remove', 'largeScaleAction': 'label', 'bigAlphagoAction': 'ignore', 'recordSettersAction': 'ignore', 'lowOutliersZValueThreshold': -2, 'highOutliersZValueThreshold': 0.76, 'outlierWindowSize': 2, 'labelPoints': false, 'plotRegressions': false, 'labelEras': true}}, {'name': 'fig3', 'params': {'xAxis': 'Publication date', 'yAxis': 'Training compute (FLOPs)', 'startDate': date(1950, 01, 01), 'endDate': date(2022, 02, 01), 'startDlEra': date(2009, 12, 31), 'startLargeScaleEra': date(2024, 09, 01), 'splitDlEra': true, 'splitLargeScaleEra': true, 'citationThreshold': 0, 'separateCategories': false, 'otherDomainThreshold': 10, 'outliersAction': 'remove', 'largeScaleAction': 'ignore', 'bigAlphagoAction': 'ignore', 'recordSettersAction': 'ignore', 'lowOutliersZValueThreshold': -2, 'highOutliersZValueThreshold': 0.76, 'outlierWindowSize': 2, 'labelPoints': false, 'plotRegressions': true, 'labelEras': true}}, {'name': 'fig4', 'params': {'xAxis': 'Publication date', 'yAxis': 'Training compute (FLOPs)', 'startDate': date(2009, 12, 31), 'endDate': date(2022, 02, 01), 'startDlEra': date(2009, 12, 31), 'startLargeScaleEra': date(2015, 09, 01), 'splitDlEra': true, 'splitLargeScaleEra': true, 'citationThreshold': 0, 'separateCategories': false, 'otherDomainThreshold': 10, 'outliersAction': 'remove', 'largeScaleAction': 'label', 'bigAlphagoAction': 'ignore', 'recordSettersAction': 'ignore', 'lowOutliersZValueThreshold': -2, 'highOutliersZValueThreshold': 0.76, 'outlierWindowSize': 2, 'labelPoints': true, 'plotRegressions': true, 'labelEras': true}}, {'name': 'fig5', 'params': {'xAxis': 'Publication date', 'yAxis': 'Training compute (FLOPs)', 'startDate': date(2015, 09, 01), 'endDate': date(2022, 02, 01), 'startDlEra': date(2009, 12, 31), 'startLargeScaleEra': date(2015, 09, 01), 'splitDlEra': true, 'splitLargeScaleEra': true, 'citationThreshold': 0, 'separateCategories': false, 'otherDomainThreshold': 10, 'outliersAction': 'remove', 'largeScaleAction': 'isolate', 'bigAlphagoAction': 'ignore', 'recordSettersAction': 'ignore', 'lowOutliersZValueThreshold': -2, 'highOutliersZValueThreshold': 0.76, 'outlierWindowSize': 2, 'labelPoints': true, 'plotRegressions': true, 'labelEras': false}}, {'name': 'fig6', 'params': {'xAxis': 'Publication date', 'yAxis': 'Training compute (FLOPs)', 'startDate': date(1990, 01, 01), 'endDate': date(2022, 02, 01), 'startDlEra': date(2009, 12, 31), 'startLargeScaleEra': date(2015, 09, 01), 'splitDlEra': true, 'splitLargeScaleEra': true, 'citationThreshold': 0, 'separateCategories': false, 'otherDomainThreshold': 10, 'outliersAction': 'label', 'largeScaleAction': 'label', 'bigAlphagoAction': 'ignore', 'recordSettersAction': 'ignore', 'lowOutliersZValueThreshold': -2, 'highOutliersZValueThreshold': 0.76, 'outlierWindowSize': 2, 'labelPoints': false, 'plotRegressions': false, 'labelEras': true}}, {'name': 'fig7', 'params': {'xAxis': 'Publication date', 'yAxis': 'Training compute (FLOPs)', 'startDate': date(1950, 01, 01), 'endDate': date(2022, 02, 01), 'startDlEra': date(2009, 12, 31), 'startLargeScaleEra': date(2015, 09, 01), 'splitDlEra': true, 'splitLargeScaleEra': true, 'citationThreshold': 0, 'separateCategories': false, 'otherDomainThreshold': 10, 'outliersAction': 'ignore', 'largeScaleAction': 'ignore', 'bigAlphagoAction': 'remove', 'recordSettersAction': 'isolate', 'lowOutliersZValueThreshold': -2, 'highOutliersZValueThreshold': 0.76, 'outlierWindowSize': 2, 'labelPoints': true, 'plotRegressions': true, 'labelEras': true}}, {'name': 'fig8', 'params': {'xAxis': 'Publication date', 'yAxis': 'Training compute (FLOPs)', 'startDate': date(2009, 12, 31), 'endDate': date(2022, 02, 01), 'startDlEra': date(2009, 12, 31), 'startLargeScaleEra': date(2015, 09, 01), 'splitDlEra': true, 'splitLargeScaleEra': false, 'citationThreshold': 0, 'separateCategories': true, 'otherDomainThreshold': 10, 'outliersAction': 'remove', 'largeScaleAction': 'ignore', 'bigAlphagoAction': 'ignore', 'recordSettersAction': 'ignore', 'lowOutliersZValueThreshold': -2, 'highOutliersZValueThreshold': 0.76, 'outlierWindowSize': 2, 'labelPoints': false, 'plotRegressions': true, 'labelEras': true}}, {'name': 'fig10', 'params': {'xAxis': 'Publication date', 'yAxis': 'Training compute (FLOPs)', 'startDate': date(2012, 09, 01), 'endDate': date(2017, 12, 01), 'startDlEra': date(2012, 09, 01), 'startLargeScaleEra': date(2015, 09, 01), 'splitDlEra': true, 'splitLargeScaleEra': false, 'citationThreshold': 0, 'separateCategories': false, 'otherDomainThreshold': 10, 'outliersAction': 'remove', 'largeScaleAction': 'label', 'bigAlphagoAction': 'ignore', 'recordSettersAction': 'ignore', 'lowOutliersZValueThreshold': -2, 'highOutliersZValueThreshold': 0.76, 'outlierWindowSize': 2, 'labelPoints': false, 'plotRegressions': true, 'labelEras': true}}];
 
 
 {
 
   let selector = v.addSelector("Presets");
   for (let preset of presets) {
+    preset = {...params, ...preset};
     selector.addItem(preset.name, (name) => {
-      console.log("setting", preset.name);
       v.setOptions(preset.params);
     });
   }
 
-  //v.addDateSlider(["startDate", "startDlEra", "startLargeScaleEra", "endDate"], [new Date(1950, 1, 1), new Date(2009, 1, 1), new Date(2018, 1, 1), new Date(2023, 1, 1)]);
-  v.addDateSlider(["startDate", "startDlEra", "startLargeScaleEra", "endDate"], [new Date(1950, 1, 1), new Date(1970, 1, 1), new Date(1985, 1, 1), new Date(2023, 1, 1)]);
+  //v.addDateSlider(["startDate", "startDlEra", "startLargeScaleEra", "endDate"], [date(1950, 1, 1), date(2009, 1, 1), date(2018, 1, 1), date(2023, 1, 1)]);
+  v.addDateSlider(["startDate", "startDlEra", "startLargeScaleEra", "endDate"], [date(1950, 1, 1), date(1970, 1, 1), date(1985, 1, 1), date(2023, 1, 1)]);
   v.addSelectOption ("X axis",                      "xAxis",                       "Publication date", ["Publication date", "Parameters", "Training compute (FLOPs)", "Inference compute (FLOPs)", "Training compute per parameter (FLOPs)", "Training compute times parameters"]);
   v.addSelectOption ("Y axis",                      "yAxis",                       "Parameters", ["Parameters", "Training compute (FLOPs)", "Inference compute (FLOPs)", "Training compute per parameter (FLOPs)", "Training compute times parameters", "Training cost (2020 USD)"]);
   //v.addBooleanOption("Show legend",                 "showLegend",                  true);
@@ -807,7 +818,38 @@ presets = [{'name': 'fig1', 'params': {'xAxis': 'Publication date', 'yAxis': 'Tr
   v.addSelectOption("Big AlphaGo",    "bigAlphagoAction",    "ignore", ["ignore", "label", "remove"]);
   v.addSelectOption("Record setters", "recordSettersAction", "ignore", ["ignore", "label", "isolate"]);
 
+  v.addNumberOption ("Bootstrap sample size",           "bootstrapSampleSize",          1000);
+  v.addBooleanOption("Adjust for estimate uncertainty", "adjustForEstimateUncertainty", true);
+
   v.addTextOption("Filter by text",  "filterText");
+
+  v.openOptions();
+
+  let regressionTable = $(".regressionTable").DataTable({
+    data: [
+    ],
+
+    columns: [
+        { title: "Era",                   data: "era",                 className: "rightAligned" },
+        { title: "Domain",                data: "domain",              className: "rightAligned" },
+        { title: "n",                     data: "n",                   className: "rightAligned" },
+        { title: "Scale (start / end)",   data: "Scale (start / end)", className: "rightAligned" },
+        { title: "Slope",                 data: "Slope",               className: "rightAligned" },
+        { title: "Doubling time",         data: "Doubling time",       className: "rightAligned" },
+        { title: "R2",                    data: "R2",                  className: "rightAligned" },
+    ],
+
+    paging:     false,
+    ordering:   false,
+    info:       false,
+    filter:     false,
+
+    //scrollX: true,
+
+    language: {
+        emptyTable: "No data"
+    }
+  });
 
   // Oh, Jesus, sweet Jesus
   let urlParamNames = [];
@@ -825,7 +867,6 @@ presets = [{'name': 'fig1', 'params': {'xAxis': 'Publication date', 'yAxis': 'Tr
       } else {
         value = (v.options[key].constructor)(value);
       }
-      console.log(key, value);
       v.options[key] = value;
       urlParamNames.push(key);
     }
@@ -854,6 +895,10 @@ presets = [{'name': 'fig1', 'params': {'xAxis': 'Publication date', 'yAxis': 'Tr
 
     params = {...params, ...options};
     let result = generateGraph(_database, params);
+
+    regressionTable.clear();
+    regressionTable.rows.add(result.regressionInfoTable);
+    regressionTable.draw();
 
     let fieldsToCheck = [
       "System",
@@ -905,6 +950,8 @@ presets = [{'name': 'fig1', 'params': {'xAxis': 'Publication date', 'yAxis': 'Tr
   };
 
   v.show();
+
+  selector.select("default");
 }
 
 function filteredOut(row, filterText, fieldsToCheck) {
