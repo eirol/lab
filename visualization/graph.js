@@ -835,7 +835,7 @@ presets = [
         { title: "n",                     data: "n",                   className: "rightAligned" },
         { title: "Scale (start / end)",   data: "Scale (start / end)", className: "rightAligned" },
         { title: "Slope",                 data: "Slope",               className: "rightAligned" },
-        { title: "Doubling time",         data: "Doubling time",       className: "rightAligned" },
+        { title: "Doubling time",         data: "Doubling time",       className: "rightAligned", name: "doublingTime" },
         { title: "R2",                    data: "R2",                  className: "rightAligned" },
     ],
 
@@ -897,6 +897,15 @@ presets = [
     let result = generateGraph(_database, params);
 
     regressionTable.clear();
+
+    if (params.xAxis == "Publication date") {
+      regressionTable.column("doublingTime:name").visible(true);
+    } else {
+      regressionTable.column("doublingTime:name").visible(false);
+      // DataTables requires a "Doubling time" column. This is a horrible hack to satisfy that demand.
+      for (let info of result.regressionInfoTable) info["Doubling time"] = "-";
+    }
+
     regressionTable.rows.add(result.regressionInfoTable);
     regressionTable.draw();
 
