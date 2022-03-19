@@ -4,9 +4,9 @@ function addMultislider(div, params) {
   div.innerHTML += '<div class="background"></div>';
   div.innerHTML += '<div class="handle startDate"></div>';
   div.innerHTML += '<div class="string string1"></div>';
-  div.innerHTML += '<div class="handle eraTransition1"></div>';
+  div.innerHTML += '<div class="handle startDlEra"></div>';
   div.innerHTML += '<div class="string string2"></div>';
-  div.innerHTML += '<div class="handle eraTransition2"></div>';
+  div.innerHTML += '<div class="handle startLargeScaleEra"></div>';
   div.innerHTML += '<div class="string string3"></div>';
   div.innerHTML += '<div class="handle endDate"></div>';
   // deal with it
@@ -24,8 +24,8 @@ function addMultislider(div, params) {
 
   let values = params.values || {
     "startDate": .0,
-    "eraTransition1": .100,
-    "eraTransition2": .250,
+    "startDlEra": .100,
+    "startLargeScaleEra": .250,
     "endDate": 1.0,
   };
 
@@ -68,16 +68,22 @@ function addMultislider(div, params) {
     let dx = 14;
 
     $(".string1").css("left",  $(handleDict["startDate"]).position().left + dx);
-    $(".string1").css("width", $(handleDict["eraTransition1"]).position().left - $(handleDict["startDate"]).position().left);
+    $(".string1").css("width", $(handleDict["startDlEra"]).position().left - $(handleDict["startDate"]).position().left);
 
-    $(".string2").css("left",  $(handleDict["eraTransition1"]).position().left + dx);
-    $(".string2").css("width", $(handleDict["eraTransition2"]).position().left - $(handleDict["eraTransition1"]).position().left);
+    $(".string2").css("left",  $(handleDict["startDlEra"]).position().left + dx);
+    $(".string2").css("width", $(handleDict["startLargeScaleEra"]).position().left - $(handleDict["startDlEra"]).position().left);
 
-    $(".string3").css("left",  $(handleDict["eraTransition2"]).position().left + dx);
-    $(".string3").css("width", $(handleDict["endDate"]).position().left - $(handleDict["eraTransition2"]).position().left);
+    $(".string3").css("left",  $(handleDict["startLargeScaleEra"]).position().left + dx);
+    $(".string3").css("width", $(handleDict["endDate"]).position().left - $(handleDict["startLargeScaleEra"]).position().left);
   });
 
   resizeObserver.observe(slider);
+
+  function set(name, value) {
+    values[name] = value;
+    _("." + name).style.left = (100*value) + "%";
+    updateSlider();
+  }
 
   function updateSlider() {
     let handles = $(".handle").toArray();
@@ -88,10 +94,10 @@ function addMultislider(div, params) {
     eraTransition2Handle = handles[2];
     endDateHandle        = handles[3];
 
-    handleDict["startDate"]      = startDateHandle;
-    handleDict["eraTransition1"] = eraTransition1Handle;
-    handleDict["eraTransition2"] = eraTransition2Handle;
-    handleDict["endDate"]        = endDateHandle;
+    handleDict["startDate"]          = startDateHandle;
+    handleDict["startDlEra"]         = eraTransition1Handle;
+    handleDict["startLargeScaleEra"] = eraTransition2Handle;
+    handleDict["endDate"]            = endDateHandle;
 
     for (let name in values) {
       values[name] = parseInt($(handleDict[name]).position().left)/$(slider).width();
@@ -100,14 +106,20 @@ function addMultislider(div, params) {
     let dx = 14;
 
     $(".string1").css("left",  $(handleDict["startDate"]).position().left + dx);
-    $(".string1").css("width", $(handleDict["eraTransition1"]).position().left - $(handleDict["startDate"]).position().left);
+    $(".string1").css("width", $(handleDict["startDlEra"]).position().left - $(handleDict["startDate"]).position().left);
 
-    $(".string2").css("left",  $(handleDict["eraTransition1"]).position().left + dx);
-    $(".string2").css("width", $(handleDict["eraTransition2"]).position().left - $(handleDict["eraTransition1"]).position().left);
+    $(".string2").css("left",  $(handleDict["startDlEra"]).position().left + dx);
+    $(".string2").css("width", $(handleDict["startLargeScaleEra"]).position().left - $(handleDict["startDlEra"]).position().left);
 
-    $(".string3").css("left",  $(handleDict["eraTransition2"]).position().left + dx);
-    $(".string3").css("width", $(handleDict["endDate"]).position().left - $(handleDict["eraTransition2"]).position().left);
+    $(".string3").css("left",  $(handleDict["startLargeScaleEra"]).position().left + dx);
+    $(".string3").css("width", $(handleDict["endDate"]).position().left - $(handleDict["startLargeScaleEra"]).position().left);
   }
 
   updateSlider();
+
+  let multislider = {
+    set: set,
+  };
+
+  return multislider;
 }

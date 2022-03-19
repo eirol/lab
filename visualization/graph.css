@@ -4,6 +4,17 @@
   text-align: right;
 }
 
+.dropdown {
+  position: absolute;
+  top: 50%;
+  right: -20px;
+  background-color: grey;
+  border-radius: 4px;
+  list-style: none;
+  padding: 5px;
+  width: 140px;
+}
+
 table.dataTable th, table.dataTable td {
   padding-top: 0px !important;
   padding-bottom: 0px !important;
@@ -11,6 +22,7 @@ table.dataTable th, table.dataTable td {
   padding-left: 4px !important;
 }
 
+/*
 table.dataTable th {
   font-size:  0.9em !important;
 }
@@ -18,6 +30,7 @@ table.dataTable th {
 table.dataTable td {
   font-size:  0.9em !important;
 }
+*/
 
 .graphContainer {
   position: relative;
@@ -133,18 +146,33 @@ table.dataTable td {
 
 .graphContainer .optionsButton {
   position: absolute;
-  top: 0px;
   right: 0px;
-  width: 28px;
-  height: 21px;
 }
 
 .graphContainer .exportButton {
   position: absolute;
-  top: 0px;
-  right: 30px;
+  right: 32px;
+}
+
+.graphContainer .exportButton button {
+  width: 100%;
+  cursor: pointer;
+  text-align: left;
+}
+
+.exportButton, .optionsButton {
+  top: 2px;
   width: 28px;
   height: 21px;
+  background-color: #f0f0f0;
+  text-align: center;
+  border-radius: 3px;
+  border: 1px solid black;
+  cursor: pointer;
+}
+
+.exportButton, .optionsButton > span {
+  vertical-align: middle;
 }
 
 .hidden {
