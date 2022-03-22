@@ -407,13 +407,14 @@ function makeVisualizer(selector) {
   container.innerHTML += '<div class="graph"><div class="vegaGraph" id="'+ makeId() +'"></div></div>';
   container.innerHTML += '<div class="legend"></div>';
   container.innerHTML += '<div class="options"><div class="optionsHeader">Options</div></div>';
-  container.innerHTML += '<div class="dateslider"></div>';
+  container.innerHTML += '<div class="datesliderContainer"><div class="dateslider"></div></div>';
 
   let graph      = _(container, ".graph");
   let vegaNode   = _(container, ".vegaGraph");
   let legend     = _(container, ".legend");
   let options    = _(container, ".options");
   let dateSlider = _(container, ".dateSlider");
+  let dateSliderContainer = _(container, ".dateSliderContainer");
 
   // Oh, God
   options.style.height = container.offsetHeight;
@@ -436,6 +437,7 @@ function makeVisualizer(selector) {
 
     let timer = setInterval(() => {
       vegaNode.style.width = container.offsetWidth - parseInt(computedStyle.width);
+      dateSliderContainer.style.width = container.offsetWidth - parseInt(computedStyle.width);
 
       if (countDown-- < 0 || parseInt(computedStyle.width) == targetWidth) {
         clearInterval(timer);

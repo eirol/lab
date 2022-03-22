@@ -34,18 +34,21 @@ table.dataTable td {
 
 .graphContainer {
   position: relative;
-  //width: 800px;
-  //height: 500px;
   width: 100%;
   height: 100%;
   margin: auto;
-  background-color: white;
+  overflow: hidden;
+  //background-color: #ddd;
+}
+
+.dateSlider {
+  //width: 95% !important;
+  margin: 10px auto;
 }
 
 .graphContainer .vegaGraph {
   width: 100%;
-  height: 100%;
-  //background-color: blue;
+  height: calc(100% - 35px);
 }
 
 .graphContainer .regressionTableWrapper {
