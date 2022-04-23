@@ -25,7 +25,7 @@ jobs:
         shell: Rscript {0}
 
       - name: Render Site
-        run: Rscript -e 'rmarkdown::render_site(encoding = "UTF-8")'
+        run: Rscript -e 'rmarkdown::render_site("distill", encoding = "UTF-8")'
      # - name: Copy redirects
       #  run: Rscript -e 'fs::file_copy("_redirects", "_site/_redirects")'
       - name: Commit results
