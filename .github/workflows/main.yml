@@ -36,7 +36,7 @@ jobs:
           mv distill/_site/ ../tmp
           git fetch
           git checkout rendered-website
-          rm -r .
+          rm -r *
           cp -r ../tmp/* .
           git add -A
           git commit -m 'Render' || echo "No changes to commit"
