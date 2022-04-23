@@ -1,7 +1,7 @@
 name: "ml"
-title: "Your title here"
+title: "Epoch"
 description: |
-  Your title here
+  Epoch
 output_dir: "_site"
 navbar:
   right:
@@ -9,4 +9,6 @@ navbar:
       href: index.html
     - text: "About"
       href: about.html
+    - text: "Trends"
+      href: trends.html
 output: distill::distill_article
