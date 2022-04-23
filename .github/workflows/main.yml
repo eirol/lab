@@ -10,27 +10,22 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-#     - uses: r-lib/actions/setup-r@master
+      - uses: r-lib/actions/setup-r@master
 
-#     - uses: r-lib/actions/setup-pandoc@master
+      - uses: r-lib/actions/setup-pandoc@master
 
-#     - name: Install dependencies
-#       run: |
-#         install.packages("rmarkdown")
-#         install.packages("distill")
-#         install.packages("postcards")
-#         install.packages("devtools")
-#         install.packages("fs")
-#       shell: Rscript {0}
-
-      - name: Clear the output dir
-        run: rm -fr public/
-      - name: Render Site
+      - name: Install dependencies
         run: |
-          mkdir distill/_site/
-          echo "Hey, there!" > distill/_site/index.html
-#     - name: Render Site
-#       run: Rscript -e 'rmarkdown::render_site("distill", encoding = "UTF-8")'
+          install.packages("rmarkdown")
+          install.packages("distill")
+          install.packages("postcards")
+          install.packages("devtools")
+          install.packages("fs")
+        shell: Rscript {0}
+
+      - name: Render Site
+        run: Rscript -e 'rmarkdown::render_site("distill", encoding = "UTF-8")'
+
       - name: Commit results
         run: |
           mv distill/_site/ ../tmp
