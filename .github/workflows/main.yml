@@ -28,7 +28,7 @@ jobs:
       - name: Render Site
         run: |
           mkdir distill/_site/
-          echo "Hey, there!" > distill/_site/foobar.html
+          echo "Hey, there!" > distill/_site/index.html
 #     - name: Render Site
 #       run: Rscript -e 'rmarkdown::render_site("distill", encoding = "UTF-8")'
       - name: Commit results
