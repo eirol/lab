@@ -34,6 +34,7 @@ jobs:
       - name: Commit results
         run: |
           mv distill/_site/ ../tmp
+          git fetch
           git checkout rendered-website
           rm -r .
           cp -r ../tmp/* .
