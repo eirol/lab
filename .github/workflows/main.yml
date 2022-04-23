@@ -31,10 +31,12 @@ jobs:
           echo "Hey, there!" > distill/_site/foobar.html
 #     - name: Render Site
 #       run: Rscript -e 'rmarkdown::render_site("distill", encoding = "UTF-8")'
-      - name: Move the rendered directory to the correct place
-        run: mv distill/_site/ ../tmp
-#     - name: Commit results
-#       run: |
-#         git add -A
-#         git commit -m 'Rebuild site' || echo "No changes to commit"
-#         git push origin || echo "No changes to commit"
+      - name: Commit results
+        run: |
+          mv distill/_site/ ../tmp
+          git co rendered-website
+          rm -r .
+          cp -r ../tmp/* .
+          git add -A
+          git commit -m 'Render' || echo "No changes to commit"
+          git push origin || echo "No changes to commit"
