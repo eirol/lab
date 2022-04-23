@@ -14,23 +14,27 @@ jobs:
 
       - uses: r-lib/actions/setup-pandoc@master
 
-      - name: Install dependencies
-        run: |
-          install.packages("rmarkdown")
-          install.packages("distill")
-          install.packages("postcards")
-          install.packages("devtools")
-          install.packages("fs")
-        shell: Rscript {0}
+#     - name: Install dependencies
+#       run: |
+#         install.packages("rmarkdown")
+#         install.packages("distill")
+#         install.packages("postcards")
+#         install.packages("devtools")
+#         install.packages("fs")
+#       shell: Rscript {0}
 
       - name: Clear the output dir
         run: rm -fr public/
       - name: Render Site
-        run: Rscript -e 'rmarkdown::render_site("distill", encoding = "UTF-8")'
-      - name: Move the rendered directory to the correct place
-        run: mv distill/_site/ public/
-      - name: Commit results
         run: |
-          git add -A
-          git commit -m 'Rebuild site' || echo "No changes to commit"
-          git push origin || echo "No changes to commit"
+          mkdir distill/_site/
+          echo "Hey, there!" > distill/_site/foobar.html
+#     - name: Render Site
+#       run: Rscript -e 'rmarkdown::render_site("distill", encoding = "UTF-8")'
+      - name: Move the rendered directory to the correct place
+        run: mv distill/_site/ ../tmp
+#     - name: Commit results
+#       run: |
+#         git add -A
+#         git commit -m 'Rebuild site' || echo "No changes to commit"
+#         git push origin || echo "No changes to commit"
