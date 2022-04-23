@@ -6,7 +6,7 @@ name: Render & Deploy Site
 
 jobs:
   build:
-    runs-on: macOS-latest
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
 
@@ -21,13 +21,14 @@ jobs:
           install.packages("postcards")
           install.packages("devtools")
           install.packages("fs")
-          #devtools::install_github("etiennebacher/ebmisc")
         shell: Rscript {0}
 
+      - name: Clear the output dir
+        run: rm -r public/
       - name: Render Site
         run: Rscript -e 'rmarkdown::render_site("distill", encoding = "UTF-8")'
-     # - name: Copy redirects
-      #  run: Rscript -e 'fs::file_copy("_redirects", "_site/_redirects")'
+      - name: Move the rendered directory to the correct place
+        run: mv distill/_site/ public/
       - name: Commit results
         run: |
           git add -A
