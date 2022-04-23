@@ -1,5 +1,6 @@
 name: "ml"
 title: "Epoch"
+favicon: images/favicon.png
 description: |
   Epoch
 output_dir: "_site"
