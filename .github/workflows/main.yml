@@ -24,7 +24,7 @@ jobs:
         shell: Rscript {0}
 
       - name: Clear the output dir
-        run: rm -r public/
+        run: rm -fr public/
       - name: Render Site
         run: Rscript -e 'rmarkdown::render_site("distill", encoding = "UTF-8")'
       - name: Move the rendered directory to the correct place
