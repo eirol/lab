@@ -87,29 +87,29 @@ code span.wa { color: #5e5e5e; font-style: italic; } /* Warning */
 
 
   <!--radix_placeholder_meta_tags-->
-  <title>Epoch</title>
+  <title>Epoch: Compute Trends Across Three eras of Machine Learning</title>
   
-  <meta property="description" itemprop="description" content="So, this is what this looks like."/>
+  <meta property="description" itemprop="description" content="by Jsevillamol, Pablo Villalobos, lennart, Marius Hobbhahn, Tamay Besiroglu, anson.ho"/>
   
   
   
   <!--  https://developers.facebook.com/docs/sharing/webmasters#markup -->
-  <meta property="og:title" content="Epoch"/>
+  <meta property="og:title" content="Epoch: Compute Trends Across Three eras of Machine Learning"/>
   <meta property="og:type" content="article"/>
-  <meta property="og:description" content="So, this is what this looks like."/>
+  <meta property="og:description" content="by Jsevillamol, Pablo Villalobos, lennart, Marius Hobbhahn, Tamay Besiroglu, anson.ho"/>
   <meta property="og:locale" content="en_US"/>
   <meta property="og:site_name" content="Epoch"/>
   
   <!--  https://dev.twitter.com/cards/types/summary -->
   <meta property="twitter:card" content="summary"/>
-  <meta property="twitter:title" content="Epoch"/>
-  <meta property="twitter:description" content="So, this is what this looks like."/>
+  <meta property="twitter:title" content="Epoch: Compute Trends Across Three eras of Machine Learning"/>
+  <meta property="twitter:description" content="by Jsevillamol, Pablo Villalobos, lennart, Marius Hobbhahn, Tamay Besiroglu, anson.ho"/>
   
   <!--/radix_placeholder_meta_tags-->
   <!--radix_placeholder_rmarkdown_metadata-->
   
   <script type="text/json" id="radix-rmarkdown-metadata">
-  {"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["title","description","site"]}},"value":[{"type":"character","attributes":{},"value":["Epoch"]},{"type":"character","attributes":{},"value":["So, this is what this looks like.\n"]},{"type":"character","attributes":{},"value":["distill::distill_website"]}]}
+  {"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["title","description","site"]}},"value":[{"type":"character","attributes":{},"value":["Compute Trends Across Three eras of Machine Learning"]},{"type":"character","attributes":{},"value":["by Jsevillamol, Pablo Villalobos, lennart, Marius Hobbhahn, Tamay Besiroglu, anson.ho\n"]},{"type":"character","attributes":{},"value":["distill::distill_website"]}]}
   </script>
   <!--/radix_placeholder_rmarkdown_metadata-->
   <!--radix_placeholder_navigation_in_header-->
@@ -2056,7 +2056,7 @@ code span.wa { color: #5e5e5e; font-style: italic; } /* Warning */
 <!--radix_placeholder_front_matter-->
 
 <script id="distill-front-matter" type="text/json">
-{"title":"Epoch","description":"So, this is what this looks like.","authors":[]}
+{"title":"Compute Trends Across Three eras of Machine Learning","description":"by Jsevillamol, Pablo Villalobos, lennart, Marius Hobbhahn, Tamay Besiroglu, anson.ho","authors":[]}
 </script>
 
 <!--/radix_placeholder_front_matter-->
@@ -2079,14 +2079,38 @@ code span.wa { color: #5e5e5e; font-style: italic; } /* Warning */
 <!--/radix_placeholder_site_before_body-->
 
 <div class="d-title">
-<h1>Epoch</h1>
+<h1>Compute Trends Across Three eras of Machine Learning</h1>
 <!--radix_placeholder_categories-->
 <!--/radix_placeholder_categories-->
-<p><p>So, this is what this looks like.</p></p>
+<p><p>by Jsevillamol, Pablo Villalobos, lennart, Marius Hobbhahn, Tamay Besiroglu, anson.ho</p></p>
 </div>
 
 
 <div class="d-article">
+<p>What do you need to develop advanced Machine Learning systems? Leading companies don’t know. But they are very interested in figuring it out. They dream of replacing all these pesky workers with reliable machines who take no leave and have no morale issues.</p>
+<p>So when they heard that <a href="https://arxiv.org/abs/2001.08361">throwing processing power at the problem might get you far along the way</a>, they did not sit idly on their GPUs. But, how fast is their demand for compute growing? And is the progress regular?</p>
+<p>Enter us. We have <a href="https://arxiv.org/abs/2202.05924">obsessively analyzed</a> trends in the amount of compute spent training milestone Machine Learning models.</p>
+<p>Our analysis shows that:</p>
+<ul>
+<li><strong>Before the Deep Learning era</strong>, training compute approximately followed Moore’s law, doubling every ≈20 months.</li>
+<li>The <strong>Deep Learning era</strong> starts somewhere between 2010 and 2012. After that, doubling time speeds up to ≈5-6 months.</li>
+<li>Arguably, between 2015 and 2016 a separate <strong>trend of large-scale models</strong> emerged, with massive training runs sponsored by large corporations. During this trend, the amount of training compute is 2 to 3 orders of magnitude (OOMs) bigger than systems following the Deep Learning era trend. However, the growth of compute in large-scale models seems slower, with a doubling time of ≈10 months.</li>
+</ul>
+<figure>
+<img src="images/figure1.png" alt="" /><figcaption>Figure 1: Trends in n=118 milestone Machine Learning systems between 1950 and 2022. We distinguish three eras. Note the change of slope circa 2010, matching the advent of Deep Learning; and the emergence of a new large scale trend in late 2015.</figcaption>
+</figure>
+<figure>
+<img src="images/table1.png" alt="" /><figcaption>Table 1. Doubling time of training compute across three eras of Machine Learning. The notation [low, median, high] denotes the quantiles 0.025, 0.5 and 0.975 of a confidence interval.</figcaption>
+</figure>
+<p>Not enough for you? Here are some fresh takeaways:</p>
+<ul>
+<li>Trends in compute are <strong>slower than</strong> <a href="https://openai.com/blog/ai-and-compute/">previously reported</a>! But they are <a href="https://www.lesswrong.com/posts/wfpdejMWog4vEDLDg/ai-and-compute-trend-isn-t-predictive-of-what-is-happening">still ongoing</a>. I’d say slow and steady, but the rate of growth is blazingly fast, still doubling every 6 months. This probably means that you should double the timelines for all <a href="">previous analyses</a> that relied on AI and Compute’s previous result.</li>
+<li>We think the framing of the <strong>three eras of ML</strong> is very helpful! Remember, we are suggesting to split the history of ML into the <strong>Pre-Deep Learning Era</strong>, the <strong>Deep Learning Era</strong> and the <strong>Large-Scale Era</strong>. And we think this framing can help you make sense of what has happened in the last two decades of ML research.</li>
+<li>We have curated an awesome <a href="https://docs.google.com/spreadsheets/d/1AAIebjNsnJj_uKALHbXNfn3_YsT6sHXtCU0q7OIPuc4/edit#gid=0">public database of milestone ML models</a>! Please use it for your own analyses (don’t forget to cite us!). If you want to play around with the data, we are maintaining an interactive visualization of it <a href="https://colab.research.google.com/drive/11m0AfSQnLiDijtE1fsIPqF-ipbTQcsFp">here</a> and a crappier but ligther one <a href="https://eirol.github.io/trends/crappy-visualization/visualization.html">here</a>.</li>
+</ul>
+<p>Compute is a strategic resource for developing advanced ML models. Better understanding the progress of our compute capabilities will help us better navigate the advent of transformative AI.</p>
+<p>In the future, we will also be looking at the other key resource for training machine learning models: data. <a href="https://www.alignmentforum.org/s/T9pBzinPXYB3mxSGi?_ga=2.94622108.1499606200.1645194489-71379542.1628068400">Stay tuned for more</a>!</p>
+<p><em><a href="https://arxiv.org/abs/2202.05924">Read the full paper now on the arXiv</a></em></p>
 <div class="sourceCode" id="cb1"><pre class="sourceCode r distill-force-highlighting-css"><code class="sourceCode r"></code></pre></div>
 <!--radix_placeholder_article_footer-->
 <!--/radix_placeholder_article_footer-->
