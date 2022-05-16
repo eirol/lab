@@ -83,8 +83,13 @@ body {
 }
 .method .input-wrapper .input-label {
   font-size: 0.8em;
-  margin-bottom: -0.3em;
+  top: 0.6em;
+  left: 0.4em;
   color: #444;
+  background-color: #f0f3f4;
+  position: relative;
+  display: inline;
+  z-index: 1;
 }
 .method .input-wrapper > * {
   display: block;
@@ -103,11 +108,11 @@ body {
 }
 .method input {
   border: 0;
-  outline: none;
   padding: 7px;
   background-color: transparent;
   padding-left: 3px;
-  border-bottom: 1px solid grey;
+  border: 1px solid grey;
+  border-radius: 5px;
 }
 .method input:focus {
   border-color: #22a;
