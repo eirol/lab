@@ -1,0 +1,322 @@
+<html>
+<head>
+  <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title></title>
+  <link rel="stylesheet" href="main.css">
+  <script src="lib/papaparse.min.js"></script>
+</head>
+<body>
+
+  <h1>Compute Estimator (compact version)</h1>
+  <p>To help better track progress in Machine Learning, we've created a tool to help you estimate the compute for the <span style="font-weight: bold">final training run</span> of your experiment. We strongly encourage you to include the final compute in your publication.</p>
+
+
+  <div class="method-container">
+    <!-- Method 1 -->
+    <div class="method">
+      <div class="name">
+        Method 1
+      </div>
+      <div class="description">
+        <div class="magic">
+        <span class="foobar" style="width: 8em">
+          <span id="method1Compute" class="result">10 FLOP</span>
+          <div class="barfoo">compute</div>
+        </span>
+        =
+        2
+        ×
+        <span class="foobar">
+          <input id="numberOfConnections" style="width: 8em"></input>
+          <div class="barfoo"># of connections</div>
+        </span>
+        × 3
+        ×
+        <span class="foobar">
+          <input id="numberOfTrainingExamples" style="width: 10em"></input>
+          <div class="barfoo"># of training samples</div>
+        </span>
+        ×
+        <span class="foobar">
+          <input id="numberOfEpochs" style="width: 6.5em"></input>
+          <div class="barfoo"># of epochs</div>
+        </span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Method 2 -->
+    <div class="method" style="display: none">
+      <div class="name">
+        Method 2
+      </div>
+      <div class="description">
+        <div class="magic">
+        compute = <span class="foobar"><div class="barfoo">training time</div><input placeholder="training time" style="width: 8rem"></input></span> × <span class="foobar"><div class="barfoo"># of cores</div><input placeholder="# of cores" style="width: 6rem"></input></span> × <span class="foobar"><div class="barfoo">peak FLOP/s</div><input placeholder="peak FLOP/s" style="width: 8rem"></input></span> × <span class="foobar"><div class="barfoo">utilization rate</div><input placeholder="utilization rate" style="width: 7rem"></input></span>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+
+<style>
+  .dropdown-wrapper {
+    position: relative;
+    display: inline-block;
+  }
+
+  .dropdown {
+    background-color: white;
+    width: 100%;
+    position: absolute;
+    top: 21px;
+    box-sizing: border-box;
+    max-height: 100px;
+    overflow-y: auto;
+    z-index: 1;
+    padding-left: 0;
+    padding-right: 0;
+  }
+
+  .dropdown > div {
+    padding-left: 10px;
+    cursor: pointer;
+  }
+
+  .highlighted-result {
+    background-color: #7e00bf;
+    color: white;
+  }
+</style>
+
+<script>
+  function makeDropdown(node, values) {
+    let selectedResult = null;
+
+    let div = document.createElement("div");
+    div.classList.add("dropdown");
+
+    let subDivs = [];
+    for (let value of values) {
+      let subDiv = document.createElement("div");
+      subDiv.innerHTML = value;
+      div.appendChild(subDiv);
+      subDivs.push(subDiv);
+    }
+    /*
+    let noneDiv = document.createElement("div");
+    noneDiv.innerHTML = "Invalid input";
+    div.appendChild(noneDiv);
+    subDivs.push(noneDiv);
+    */
+
+    node.parentNode.appendChild(div);
+    node.addEventListener("input", () => updateVisibility());
+
+    function updateVisibility() {
+      div.style.display = "";
+      let text = node.value;
+      let words = text.trim().split(/\s+/);
+      selectedResult = null;
+      for (let subDiv of subDivs) {
+        subDiv.classList.remove("highlighted-result");
+
+        let matches = true;
+        for (let word of words) {
+          if (!subDiv.textContent.toLowerCase().includes(word.toLowerCase())) {
+            matches = false;
+            break;
+          }
+        }
+
+        if (matches) {
+          subDiv.style.display = "";
+          if (!selectedResult) {
+            selectedResult = subDiv.textContent;
+            subDiv.classList.add("highlighted-result");
+            subDiv.scrollIntoView({ block: 'center' });
+            node.dataset.value = selectedResult;
+            document.dispatchEvent(new Event('input', {bubbles:true}));
+          }
+        } else {
+          //subDiv.style.display = "none";
+        }
+      }
+
+      div.style.display = "";
+      //div.style.display = selectedResult ? "" : "none";
+      //noneDiv.style.display = selectedResult ? "none" : "";
+    }
+
+    div.style.display = "none";
+
+    node.addEventListener("blur", focusHandler, false);
+    node.addEventListener("focus", focusHandler, false);
+    node.addEventListener("keydown", onKey, false);
+
+    function onKey(e) {
+      if (e.key == 'ArrowUp' || e.key == 'ArrowDown') {
+        e.preventDefault();
+      }
+
+      if (div.style.display != "none") {
+        if ((e.key == 'Tab' && selectedResult != node.value) || e.key == 'Enter') {
+          if (selectedResult) {
+            node.value = selectedResult;
+            node.dispatchEvent(new Event('input', {bubbles:true}));
+          }
+          div.style.display = "none";
+          //e.preventDefault();
+        }
+      }
+    }
+
+    function focusHandler(e) {
+      if (e.type === "blur") {
+        div.style.display = "none";
+      } else {
+        div.style.display = "";
+        updateVisibility();
+      }
+    }
+  }
+
+  let hardwareSheet = null;
+
+  //makeDropdown(hardwarePrecision, ["Double (FP64)", "Single (FP32)", "Half (FP16)"]);
+  //makeDropdown(trainingTimeUnit, ["Hours", "Days", "Years"]);
+
+  // Store last validated inputs
+  for (let input of document.getElementsByTagName("input")) {
+    input.dataset.value = input.value;
+    if (input.id == "trainingTimeUnit" || input.id == "hardwareType" || input.id == "hardwarePrecision") continue;
+    input.addEventListener("input", () => {
+      if (input.checkValidity()) {
+        input.dataset.value = input.value;
+      }
+
+      if (input.value != "") {
+        input.classList.add("non-empty")
+      } else {
+        input.classList.remove("non-empty")
+      }
+    });
+  }
+
+
+  function checkNumberInputValidity() {
+    let valid = this.value.match(/^\+?[0-9]*\.?[0-9]*(e[+-]?[0-9]*)?$/);
+    this.setCustomValidity(valid ? '' : 'invalid');
+    //field.setCustomValidity('');
+  }
+
+  numberOfConnections.addEventListener("input", checkNumberInputValidity);
+  numberOfTrainingExamples.addEventListener("input", checkNumberInputValidity);
+  numberOfEpochs.addEventListener("input", checkNumberInputValidity);
+
+  document.addEventListener("input", () => {
+    let filled = (numberOfConnections.value != "" && numberOfTrainingExamples.value != "" && numberOfEpochs.value != "");
+    let valid = (numberOfConnections.checkValidity() && numberOfTrainingExamples.checkValidity() && numberOfEpochs.checkValidity());
+
+    if (filled && valid) {
+      method1Compute.classList.add("non-empty")
+
+      let result1 = 2 * parseFloat(numberOfConnections.value) * 3 * parseFloat(numberOfTrainingExamples.value) * parseFloat(numberOfEpochs.value);
+      method1Compute.innerHTML = formatReal(result1) + " FLOP";
+    } else {
+      method1Compute.classList.remove("non-empty")
+    }
+  });
+
+  //updateResults();
+  //document.addEventListener("input", () => updateResults());
+
+  function updateResults() {
+    //
+    // Method 1
+    //
+
+    let result1 = 2 * (+numberOfConnections.dataset.value) * 3 * (+numberOfTrainingExamples.dataset.value) * (+numberOfEpochs.dataset.value);
+    window.method1Result.innerHTML = formatReal(result1);
+
+    //
+    // Method 2
+    //
+
+    let trainingTimeUnitToSeconds = {
+      "years":  86400*365,
+      "days":   86400,
+      "hours":  3600,
+    };
+    let trainingTimeInSeconds = (+trainingTime.dataset.value) * trainingTimeUnitToSeconds[trainingTimeUnit.dataset.value.toLowerCase()];
+
+    let peakFlopS = 0;
+    let precisionToRow = {
+      "Double (FP64)": "FP64 (double precision) Performance (FLOP/s)",
+      "Single (FP32)": "FP32 (single precision) Performance (FLOP/s)",
+      "Half (FP16)": "FP16 (half precision) Performance (FLOP/s)",
+    };
+    if (hardwareSheet) {
+      for (let row of hardwareSheet) {
+        if (row["Name of the hardware"] == hardwareType.dataset.value) {
+          peakFlopS = +row[precisionToRow[hardwarePrecision.dataset.value]];
+          break;
+        }
+      }
+    }
+
+    peakFlopSOutput.innerHTML = formatReal(peakFlopS);
+    let result2 = trainingTimeInSeconds * (+numberOfCores.dataset.value) * peakFlopS * (+utilizationRate.dataset.value)/100;
+    window.method2Result.innerHTML = formatReal(result2);
+  }
+
+  function formatReal(x) {
+    return (x < 1e2) ? x : x.toExponential(1);
+  }
+
+  /*
+  Papa.parse("lib/hardware_data.csv", {
+    download: true,
+    header: true,
+    complete: function(result) {
+      hardwareSheet = result.data;
+      let strCmp = (a, b) => (a < b) ? -1 : (a > b) ? +1 : 0;
+      hardwareSheet.sort((a, b) => strCmp(a["Name of the hardware"], b["Name of the hardware"]));
+      let hardwareTypes = result.data.map(x => x["Name of the hardware"]);
+      makeDropdown(hardwareType, hardwareTypes);
+      updateResults();
+    },
+    error: function(result) {
+      console.log("Oh, no, download error");
+    },
+  });
+  */
+
+  for (let foobar of document.querySelectorAll("[data-group]")) {
+    foobar.addEventListener("focus", onActive);
+    foobar.addEventListener("blur", onInactive);
+    foobar.addEventListener("mouseover", onActive);
+    foobar.addEventListener("mouseout", onInactive);
+
+    function onActive() {
+      for (let barfoo of document.querySelectorAll(`[data-group='${foobar.dataset.group}']`)) {
+        barfoo.classList.add("highlighted");
+      }
+    }
+
+    function onInactive() {
+      for (let barfoo of document.querySelectorAll(`[data-group='${foobar.dataset.group}']`)) {
+        barfoo.classList.remove("highlighted");
+      }
+    }
+  }
+
+  function parseFloat(s) {
+    if (!s) return s;
+    if (s.endsWith('e')) return +(s + '0');
+    if (s.startsWith('e')) return +('1' + s);
+    return +s;
+  }
+</script>
+</html>

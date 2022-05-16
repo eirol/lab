@@ -1,0 +1,188 @@
+body {
+  font-family: Arial, sans;
+  background-color: #f8f8fb;
+  padding: 20px;
+}
+
+.method-container {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  align-items: stretch;
+}
+
+.method {
+  flex: 0 0 750px;
+  margin: auto;
+  margin-bottom: 2em;
+  background-color: #f0f3f4;
+  box-sizing: border-box;
+  border-radius: 4px;
+  box-shadow: 0 0 5px 2px #666;
+  padding: 10px;
+  transition: 0.3s ease;
+  display: flex;
+  flex-direction: column;
+}
+.method:hover {
+  box-shadow: 0 0 5px 5px #666;
+}
+.method:focus-within {
+  box-shadow: 0 0 6px 6px #555;
+}
+.method > .name {
+  font-size: 19px;
+  background-color: #651ae1;
+  color: white;
+  padding: 5px;
+  font-weight: bold;
+  border-radius: 5px;
+  margin-bottom: 0.5em;
+}
+.method > .description {
+  border-radius: 5px;
+  background-color: #ddd;
+  padding: 20px;
+  padding-left: 5px;
+  margin-bottom: 0.5em;
+  position: relative;
+}
+.method .lined-heading {
+  overflow: hidden;
+}
+.method .lined-heading > span {
+  display: inline-block;
+  position: relative;
+}
+.method .lined-heading > span::after {
+  display: block;
+  content: "";
+  border-bottom: 1px solid #000;
+  position: absolute;
+  top: 0;
+  left: 100%;
+  right: 0;
+  width: 100000px;
+  height: 50%;
+  margin-left: 1em;
+}
+.method > .inputs {
+  border-radius: 5px;
+  padding: 5px 10px 5px 5px;
+}
+.method > .inputs .block {
+  margin-bottom: 1em;
+}
+.method > .inputs .block .name {
+  color: #333;
+  margin-bottom: 0.2em;
+}
+.method > .inputs input:invalid {
+  background: #ffbebe;
+}
+.method input, .method input:focus {
+  padding: 4px;
+}
+.method input.small {
+  width: 80px;
+}
+.method .magic .foobar {
+  position: relative;
+}
+.method .magic .barfoo {
+  width: 100%;
+  position: absolute;
+  color: #666;
+  top: -4px;
+  padding: 4px;
+  text-align: center;
+  transition: 0.2s ease;
+}
+.method .magic input::-webkit-outer-spin-button,
+.method .magic input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+}
+.method .magic input[type=number] {
+  -moz-appearance: textfield;
+}
+.method .magic span {
+  display: inline-block;
+}
+.method .magic .result {
+  text-align: center;
+  width: 100%;
+  color: transparent;
+  visibility: hidden;
+  transition: 0.2s ease;
+}
+.method .magic .result.non-empty {
+  visibility: visible;
+  color: black;
+}
+.method .magic .result.non-empty + .barfoo {
+  top: -1.4em;
+}
+.method .magic input {
+  z-index: 1;
+  text-align: center;
+  position: relative;
+  outline: none;
+  border: 0;
+  background-color: #0000;
+  font-size: 1em;
+  border-bottom: 1px solid transparent;
+  border-color: rgba(0, 0, 0, 0.2);
+  transition: 0.2s ease;
+  bottom: 0em;
+  cursor: pointer;
+}
+.method .magic input:focus, .method .magic input.non-empty {
+  border-color: grey;
+  cursor: auto;
+  /*
+  bottom: -1.1em;
+  */
+}
+.method .magic input:focus.non-empty:valid, .method .magic input.non-empty.non-empty:valid {
+  border-color: blue;
+}
+.method .magic input:focus:invalid, .method .magic input.non-empty:invalid {
+  border-color: red;
+}
+.method .magic input:focus + .barfoo, .method .magic input.non-empty + .barfoo {
+  top: -1.4em;
+}
+.method .magic input::placeholder {
+  color: transparent;
+}
+.method > .output {
+  border-radius: 5px;
+  padding: 10px;
+  padding-left: 5px;
+}
+.method > .output .result-number {
+  float: right;
+}
+.method .separator {
+  width: 100%;
+  border-bottom: 1px solid grey;
+}
+.method .output-separator {
+  margin-top: auto;
+}
+.method .highlighted, .method .highlighted * {
+  color: #651ae1 !important;
+}
+.method [data-group], .method [data-group] * {
+  transition: color 0.3s ease;
+}
+.method .block-label {
+  display: block;
+  text-transform: uppercase;
+  font-size: 0.7em;
+  position: absolute;
+  top: 2px;
+  color: #444;
+}
+
+/*# sourceMappingURL=main.css.map */
